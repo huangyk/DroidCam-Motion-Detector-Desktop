@@ -333,13 +333,23 @@ function processImage() {
             .filter(obj => (Date.now() - obj.createdAt) <= HIGHLIGHT_DURATION)
             .slice(0, MAX_TRACKED_OBJECTS);
 
+        const boxCount = trackedObjects.length;
+        const approachThreshold = Math.max(
+          2,
+          Number(settings.approachBoxThreshold) || 3
+        );
+        const personApproaching = boxCount >= approachThreshold;
+        const drawColor = personApproaching
+          ? [255, 40, 40, 255]
+          : settings.borderColor;
+
         trackedObjects.forEach(obj => {
             const lifetime = Date.now() - obj.createdAt;
             if (lifetime <= HIGHLIGHT_DURATION) {
                 const color = new cv.Scalar(
-                    settings.borderColor[0],
-                    settings.borderColor[1],
-                    settings.borderColor[2],
+                    drawColor[0],
+                    drawColor[1],
+                    drawColor[2],
                     255
                 );
 
@@ -355,7 +365,12 @@ function processImage() {
 
         drawDetectionRegionOverlay(frame);
 
-        handleMotionEvents(trackedObjects.length, settings.alertVolume, settings.alertInterval);
+        handleMotionEvents(
+          boxCount,
+          settings.alertVolume,
+          settings.alertInterval,
+          personApproaching
+        );
 
         blurredFrame.copyTo(prevFrame);
         cv.imshow('canvasOutput', frame);

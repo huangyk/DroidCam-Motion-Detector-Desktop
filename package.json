@@ -1,8 +1,8 @@
 {
   "name": "droidcam-motion-detector",
   "productName": "DroidCam Motion Detector",
-  "version": "1.0.0",
-  "description": "DroidCam Motion Detector Application",
+  "version": "2.0.0",
+  "description": "DroidCam Motion Detector Application v2",
   "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",

@@ -15,7 +15,8 @@ export const BASE_SETTINGS:CameraSettingsFunctions = {
   
 export const DEFAULT_SETTINGS: InitialSettings = {
     movementThreshold: 1,
-    distanceThreshold: 100,
+    // Keep boxes from merging too aggressively so multi-box approach works
+    distanceThreshold: 10,
     frameSkip: 2,
     alertInterval: 1000,
     alertVolume: 100,
@@ -25,6 +26,7 @@ export const DEFAULT_SETTINGS: InitialSettings = {
     borderColor: [0, 255, 0, 255],
     borderThickness:2,
     detectionRegion: null,
+    approachBoxThreshold: 3,
     integrations: {
         discord: {
             isEnabled: false,

@@ -11,6 +11,15 @@ export function loadSettingsFromLocalStorage(): Partial<Settings> {
         ...DEFAULT_SETTINGS,
         ...parsed,
         detectionRegion: parsed.detectionRegion ?? null,
+        approachBoxThreshold:
+          typeof parsed.approachBoxThreshold === 'number'
+            ? Math.max(2, Math.min(15, parsed.approachBoxThreshold))
+            : DEFAULT_SETTINGS.approachBoxThreshold,
+        // Old installs used 100 (heavy merge) which prevents ≥3 separate boxes
+        distanceThreshold:
+          typeof parsed.distanceThreshold === 'number' && parsed.distanceThreshold <= 40
+            ? parsed.distanceThreshold
+            : DEFAULT_SETTINGS.distanceThreshold,
         integrations: {
           discord: {
             ...DEFAULT_SETTINGS.integrations.discord,

@@ -9,6 +9,6 @@ interface Window {
         setWindowSize: (width: number, height: number) => Promise<void>;
         getWindowPosition: () => Promise<[number, number]>;
         setWindowPosition: (x: number, y: number | null) => Promise<void>;
-        changeTrayIcon:(alert:boolean)=>Promise<void>;
+        changeTrayIcon:(state: 'none' | 'motion' | 'person', tip?: string)=>Promise<void>;
     };
 }

@@ -29,6 +29,8 @@ export interface BaseSettings {
   borderThickness:number;
   /** null = detect full frame */
   detectionRegion: DetectionRegion | null;
+  /** Motion box count ≥ this → red approach alert + tray */
+  approachBoxThreshold: number;
   getVideoSourceUrl: () => string;
   setVideoSourceUrl: (url: string) => void;
 }

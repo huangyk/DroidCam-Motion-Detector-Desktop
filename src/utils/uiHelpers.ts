@@ -32,9 +32,26 @@ export const UIHideConnectionLost = () => {
 }
 export const UIShowMotionIndicator = ()=>{
     domElements.motionIndicator.style.backgroundColor = '#05f805';
+    domElements.motionIndicator.classList.remove('person-alert');
+    UIHidePersonApproachBanner();
+}
+export const UIShowPersonApproachIndicator = ()=>{
+    domElements.motionIndicator.style.backgroundColor = '#ff2a2a';
+    domElements.motionIndicator.classList.add('person-alert');
+    UIShowPersonApproachBanner();
 }
 export const UIHideMotionIndicator = ()=>{
     domElements.motionIndicator.style.backgroundColor = 'transparent';
+    domElements.motionIndicator.classList.remove('person-alert');
+    UIHidePersonApproachBanner();
+}
+export const UIShowPersonApproachBanner = ()=>{
+    const banner = document.getElementById('person-approach-banner');
+    if (banner) banner.style.display = 'block';
+}
+export const UIHidePersonApproachBanner = ()=>{
+    const banner = document.getElementById('person-approach-banner');
+    if (banner) banner.style.display = 'none';
 }
 export const UIShowCanvasOutput = ()=>{
     domElements.canvasOutput.style.display = "block";

@@ -1,5 +1,5 @@
 
-import { app, BrowserWindow,ipcMain,dialog,shell,Tray,Menu,nativeImage,globalShortcut} from 'electron';
+import { app, BrowserWindow,ipcMain,dialog,shell,Tray,Menu,nativeImage,globalShortcut, NativeImage} from 'electron';
 import path from 'path';
 
 import { Buffer } from 'buffer';
@@ -10,21 +10,58 @@ declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
 
 import normalIconPath from '../src/assets/icons/tray_icon.png?asset'
-import alertIconPath from '../src/assets/icons/tray_icon_alert.png?asset'
 
+export type TrayState = 'none' | 'motion' | 'person';
 
 function createImageFromPath(base64Path:string) {
   const base64Data = base64Path.replace(/^data:image\/png;base64,/, ''); 
   const buffer = Buffer.from(base64Data, 'base64');
+  const img = nativeImage.createFromBuffer(buffer);
+  return img.isEmpty() ? img : img.resize({ width: 16, height: 16 });
+}
 
-  return nativeImage.createFromBuffer(buffer);
-} 
+/** Same-size color disc for motion/person; idle keeps the original app tray icon. */
+function createSolidTrayIcon(r: number, g: number, b: number): NativeImage {
+  const size = 16;
+  const buf = Buffer.alloc(size * size * 4);
+  const mid = (size - 1) / 2;
+  const radius = 6.2;
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const i = (y * size + x) * 4;
+      const dx = x - mid;
+      const dy = y - mid;
+      const inside = dx * dx + dy * dy <= radius * radius;
+      // Windows bitmap is BGRA
+      buf[i] = inside ? b : 0;
+      buf[i + 1] = inside ? g : 0;
+      buf[i + 2] = inside ? r : 0;
+      buf[i + 3] = inside ? 255 : 0;
+    }
+  }
+  return nativeImage.createFromBitmap(buf, { width: size, height: size });
+}
 
-const normalIcon = createImageFromPath(normalIconPath); 
-const alertIcon = createImageFromPath(alertIconPath);
+// 1 idle = original icon | 2 motion = green | 3 approach = red
+const idleIcon = createImageFromPath(normalIconPath);
+const motionIcon = createSolidTrayIcon(40, 200, 60);
+const approachIcon = createSolidTrayIcon(255, 40, 40);
+
+const trayIcons: Record<TrayState, NativeImage> = {
+  none: idleIcon.isEmpty() ? createSolidTrayIcon(160, 160, 160) : idleIcon,
+  motion: motionIcon,
+  person: approachIcon,
+};
+
+const trayTips: Record<TrayState, string> = {
+  none: '工位后方监测',
+  motion: '检测到运动',
+  person: '有人靠近！',
+};
 
 let mainWindow: BrowserWindow;
 let tray: Tray;
+let trayState: TrayState = 'none';
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
@@ -99,20 +136,28 @@ const createWindow = () => {
 
   ipcMain.handle('go-to-link', (event, url) => {shell.openExternal(url)});
 
-  ipcMain.handle('update-tray-icon', (event, alert) => {
-    if(alert) tray.setImage(alertIcon);
-    else tray.setImage(normalIcon);
+  ipcMain.handle('update-tray-icon', (event, state: TrayState, tip?: string) => {
+    if (!tray) return;
+    const next: TrayState =
+      state === 'motion' || state === 'person' ? state : 'none';
+    if (next !== trayState) {
+      trayState = next;
+      tray.setImage(trayIcons[next]);
+      tray.setToolTip(tip || trayTips[next]);
+    } else if (tip) {
+      tray.setToolTip(tip);
+    }
   });
 };
 
 function createTray() {
-  tray = new Tray(normalIcon);
+  tray = new Tray(trayIcons.none);
   const contextMenu = Menu.buildFromTemplate([
     { label: '打开窗口', click: () => mainWindow.show() },
     { label: '退出', click: () => app.quit() },
   ]);
 
-  tray.setToolTip('工位后方监测');
+  tray.setToolTip(trayTips.none);
   tray.setContextMenu(contextMenu);
 
   tray.on('click', () => {
@@ -130,4 +175,3 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
-

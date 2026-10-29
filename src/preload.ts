@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setWindowSize: (width:number, height:number) => ipcRenderer.invoke('set-window-size', width, height),
   getWindowPosition: () => ipcRenderer.invoke('get-window-position'),
   setWindowPosition: (x:number, y:number) => ipcRenderer.invoke('set-window-position', x, y),
-  changeTrayIcon:(alert:boolean)=>ipcRenderer.invoke('update-tray-icon',alert),
+  changeTrayIcon:(state: 'none' | 'motion' | 'person', tip?: string)=>
+    ipcRenderer.invoke('update-tray-icon', state, tip),
 });
 

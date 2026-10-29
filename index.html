@@ -31,6 +31,7 @@
       </div>
 
       <div class="motion-indicator"></div>
+      <div id="person-approach-banner">有人靠近</div>
        
       <div class="battery-container">
         <div class="battery">
@@ -107,18 +108,6 @@
             <span class="close-icon">❌</span>
         </button>
         
-        <div class="support-project">
-            <a id="link-item" class="support-link" href="https://ko-fi.com/sheeetface">
-              <img class="support-icon" src="/src/assets/icons/ko-fi.webp"/>
-              Support me on Ko-fi
-            </a>
-
-            <a id="link-item" class="support-link" href="https://opencollective.com/DroidCam-Motion-Detector-Desktop">
-              <img class="support-icon" src="/src/assets/icons/opencollective.webp"/>
-              Support Project on Open Collective
-            </a>
-        </div>
-
         <div class="new-version-available">
           <label>
             🚀 有新版本可用
@@ -166,9 +155,14 @@
             <span class="description">数值越小越灵敏。觉得不够灵敏就往左调。</span>
         </div>
         <div class="div-container">
-            <label for="distanceThreshold">合并距离: <span id="distanceThreshold-value">100</span></label>
-            <input type="range" id="distanceThreshold" min="10" max="1000" value="100" step="10">
-            <span class="description">相近运动块合并为一个目标。值越小，分开的目标越多。</span>
+            <label for="distanceThreshold">合并距离: <span id="distanceThreshold-value">10</span></label>
+            <input type="range" id="distanceThreshold" min="10" max="1000" value="10" step="10">
+            <span class="description">相近运动块合并为一个目标。值越小，分开的目标越多（靠近判断更准）。</span>
+        </div>
+        <div class="div-container">
+            <label for="approachBoxThreshold">靠近框数阈值: <span id="approachBoxThreshold-value">3</span></label>
+            <input type="range" id="approachBoxThreshold" min="2" max="10" value="3" step="1">
+            <span class="description">运动格子数达到此值时变红；后台挂着时托盘图标也会变红。</span>
         </div>
         <div class="div-container">
             <label for="frameSkip">跳帧: <span id="frameSkip-value">2</span></label>
@@ -394,7 +388,7 @@
         <div class="footer">
           <div>
             <label>版本:</label>
-            <label id="app-version">1.0.0</label>
+            <label id="app-version">2.0.0</label>
             
           </div>
           <div>
