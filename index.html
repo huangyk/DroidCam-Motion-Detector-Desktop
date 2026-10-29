@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>DroidCam Motion Detector</title>
+    <title>工位后方监测</title>
     <style> 
      body { background: #121313 } 
     </style>
@@ -12,6 +12,10 @@
       <img id="video-frame">
       <canvas id="canvasOutput" style="display:none;"></canvas>
 
+      <div id="detection-region-overlay">
+        <div id="detection-region-box"></div>
+      </div>
+
       <div class="loader">
           <div>
               <span id="connecting"></span>
@@ -19,11 +23,11 @@
       </div>
 
       <div class="not-camera-url-alert">
-        <span>The URL of the camera is not set. Please go to the settings (⚙) and specify the Camera URL.</span>
+        <span>尚未设置摄像头地址。请点 ⚙ 设置，填写手机 DroidCam 的 IP 和端口。</span>
       </div>
       
       <div class="connection-lost">
-              <span>Connection Lost</span>
+              <span>连接已断开</span>
       </div>
 
       <div class="motion-indicator"></div>
@@ -35,44 +39,49 @@
         </div>
       </div>
       
-      <button id="settings" class="settings" data-tts="down" aria-label="Settings">
+      <button id="settings" class="settings" data-tts="down" aria-label="设置">
           <span>⚙</span>
       </button>
 
-      <button id="pin-button" class="pin-button" data-tts="down" aria-label="Pin Window">
+      <button id="pin-button" class="pin-button" data-tts="down" aria-label="窗口置顶">
           <span>📌</span>
       </button>
+
+      <div class="region-toolbar">
+        <button id="draw-region-btn" class="region-tool-btn" type="button" aria-label="框选检测区域">框选区域</button>
+        <button id="clear-region-btn" class="region-tool-btn" type="button" aria-label="清除检测区域">清除区域</button>
+      </div>
 
       <div class="droidcam-controls-panel">
         <div class="droidcam-controls-panel-container">
           <div>
             <div class="droidcam-controls-panel-wrapper">
-              <button class="flashlight-button" data-tts="up" aria-label="Flashlight">
+              <button class="flashlight-button" data-tts="up" aria-label="闪光灯">
                 <span>🔦</span>
               </button>
 
-              <button class="screenshot-button" data-tts="up" aria-label="Take a picture (saved on your phone)">
+              <button class="screenshot-button" data-tts="up" aria-label="拍照（保存在手机）">
                 <span>📷</span>
               </button>
 
-              <button class="auto-focus-button" data-tts="up" aria-label="Auto Focus">
+              <button class="auto-focus-button" data-tts="up" aria-label="自动对焦">
                 <div class="auto-focus-button-wrapper">
                   <span>AF</span>
                 </div>
               </button>
 
-              <button class="zoomin-button" data-tts="up" aria-label="Zoom In">
+              <button class="zoomin-button" data-tts="up" aria-label="放大">
                 <span class="icon-magnifier">🔍</span>
                 <span class="icon-magnifier-symbol">+</span>
               </button>
 
-              <button class="zoomout-button" data-tts="up" aria-label="Zoom Out">
+              <button class="zoomout-button" data-tts="up" aria-label="缩小">
                 <span class="icon-magnifier">🔍</span>
                 <span class="icon-magnifier-symbol">-</span>
               </button>
 
               <input id="checkbox" type="checkbox"/>
-              <label class="switch" for="checkbox" data-tts="up" aria-label="Toggle Motion">
+              <label class="switch" for="checkbox" data-tts="up" aria-label="开关运动检测">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="slider">
                     <path
                     d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V256c0 17.7 14.3 32 32 32s32-14.3 32-32V32zM143.5 120.6c13.6-11.3 15.4-31.5 4.1-45.1s-31.5-15.4-45.1-4.1C49.7 115.4 16 181.8 16 256c0 132.5 107.5 240 240 240s240-107.5 240-240c0-74.2-33.8-140.6-86.6-184.6c-13.6-11.3-33.8-9.4-45.1 4.1s-9.4 33.8 4.1 45.1c38.9 32.3 63.5 81 63.5 135.4c0 97.2-78.8 176-176 176s-176-78.8-176-176c0-54.4 24.7-103.1 63.5-135.4z"
@@ -86,7 +95,7 @@
       </div>
 
       <button class="droidcam-controls-button">
-        <span>︽ DroidCam Controls ︽</span>
+        <span>︽ 摄像头控制 ︽</span>
       </button>
 
     </div>
@@ -112,15 +121,15 @@
 
         <div class="new-version-available">
           <label>
-            🚀 New version of the app is available! 🚀 
+            🚀 有新版本可用
             <br/>
-            We are pleased to announce the release of a new version of our app. 
+            建议前往官网下载更新。
           </label>
           <br/>
-          <a id="link-item" href="#">Visit our website</a>
+          <a id="link-item" href="#">访问官网</a>
         </div>
 
-        <h3>Camera URL</h3>
+        <h3>摄像头地址</h3>
         <div>
             <div class="wrapper-url">
                 <label for="url-input">http://</label>
@@ -131,88 +140,96 @@
             </div>
             <div id="info-notice">
               <div>
-                <span>Enter the IP and PORT from the DroidCam app on your phone.</span>
+                <span>填写手机 DroidCam Classic 上显示的 IP 和端口。</span>
               </div>
             </div>
-            <button id="apply-new-url-btn">APPLY NEW URL</button>
+            <button id="apply-new-url-btn">应用新地址</button>
         </div>
 
-        <h3>Reset settings</h3>
+        <h3>检测区域</h3>
         <div class="div-container">
-            <button id="reset-settings-btn">Reset settings</button>
-            <span class="description">Reset all settings to default values, except for integration data and camera URLs</span>
+            <span id="detection-region-status" class="description">未设置（全画面检测）</span>
+            <span class="description">点控制栏「框选」，在画面上拖出要监视的区域（例如身后通道）；框外变动不会报警。</span>
+            <button id="clear-region-settings-btn">清除检测区域</button>
+        </div>
+
+        <h3>重置设置</h3>
+        <div class="div-container">
+            <button id="reset-settings-btn">重置设置</button>
+            <span class="description">恢复默认参数（保留集成配置和摄像头地址）</span>
         </div>
         
-        <h3>Motions</h3>
+        <h3>运动检测</h3>
         <div class="div-container">
-            <label for="movementThreshold">Movement Threshold: <span id="movementThreshold-value">1</span></label>
+            <label for="movementThreshold">运动阈值: <span id="movementThreshold-value">1</span></label>
             <input type="range" id="movementThreshold" min="1" max="1000" value="1" step="1">
-            <span class="description">Sets the minimum movement size for an object to be considered moving</span>
+            <span class="description">数值越小越灵敏。觉得不够灵敏就往左调。</span>
         </div>
         <div class="div-container">
-            <label for="distanceThreshold">Distance Threshold: <span id="distanceThreshold-value">100</span></label>
+            <label for="distanceThreshold">合并距离: <span id="distanceThreshold-value">100</span></label>
             <input type="range" id="distanceThreshold" min="10" max="1000" value="100" step="10">
-            <span class="description">This setting determines the minimum distance between borders at which they should be merged into one. The smaller the value, the closer the objects can be to each other to be considered as one.</span>
+            <span class="description">相近运动块合并为一个目标。值越小，分开的目标越多。</span>
         </div>
         <div class="div-container">
-            <label for="frameSkip">Frame Skip: <span id="frameSkip-value">4</span></label>
-            <input type="range" id="frameSkip" min="2" max="20" value="4">
-            <span class="description">Number of frames to skip between processing for performance improvement</span>
+            <label for="frameSkip">跳帧: <span id="frameSkip-value">2</span></label>
+            <input type="range" id="frameSkip" min="2" max="20" value="2">
+            <span class="description">数值越小检测越勤、越灵敏，但更吃性能。</span>
         </div>
 
-        <h3>Image Adjustments</h3>
+        <h3>画面调节</h3>
         <div class="div-container">
-            <label for="brightness">Brightness: <span id="brightness-value">0</span></label>
+            <label for="brightness">亮度: <span id="brightness-value">0</span></label>
             <input type="range" id="brightness" min="0" max="100" value="0">
         </div>
         <div class="div-container">
-            <label for="contrast">Contrast: <span id="contrast-value">0</span></label>
+            <label for="contrast">对比度: <span id="contrast-value">0</span></label>
             <input type="range" id="contrast" min="0" max="100" value="0">
         </div>
         <div class="div-container">
-            <label for="sharpness">Sharpness: <span id="sharpness-value">0</span></label>
+            <label for="sharpness">锐度: <span id="sharpness-value">0</span></label>
             <input type="range" id="sharpness" min="0" max="10" value="0">
         </div>
 
-        <h3>Notifications</h3>
+        <h3>提醒</h3>
         <div class="div-container">
-            <label for="alertInterval">Alert Interval: 
-                <span id="alertInterval-value">1 sec</span>
+            <label for="alertInterval">提醒间隔: 
+                <span id="alertInterval-value">1 秒</span>
             </label>
             <input type="range" id="alertInterval" min="1000" max="300000" value="1000" step="1000">
         </div>
         <div class="div-container">
-            <label for="alertVolume">Alert Volume: <span id="alertVolume-value">100</span></label>
+            <label for="alertVolume">提醒音量: <span id="alertVolume-value">100</span></label>
             <input type="range" id="alertVolume" min="0" max="100" value="100" step="10">
+            <span class="description">办公室可调到 0（静音），仍会绿框/托盘变红。</span>
         </div>
 
-        <h3>Styles</h3>
+        <h3>样式</h3>
         <div class="div-container">
           <div class="color-range">
             <div>
-              <label for="range-red" class="range-red-label">Red</label>
+              <label for="range-red" class="range-red-label">红</label>
               <input type="range" id="range-red" min="0" max="255" value="0">
               
-              <label for="range-green" class="range-green-label">Green</label>
+              <label for="range-green" class="range-green-label">绿</label>
               <input type="range" id="range-green" min="0" max="255" value="255">
               
-              <label for="range-blue" class="range-blue-label">Blue</label>
+              <label for="range-blue" class="range-blue-label">蓝</label>
               <input type="range" id="range-blue" min="0" max="255" value="0">
             </div>
 
             <div class="border-color-tracking"></div>
             
           </div>  
-          <span class="description">Adjust the border color for object tracking in the camera</span>
+          <span class="description">运动跟踪框颜色</span>
         </div>
 
         <div class="div-container">
-          <label for="borderThickness">Border Thickness: <span id="borderThickness-value">2</span></label>
+          <label for="borderThickness">边框粗细: <span id="borderThickness-value">2</span></label>
           <input type="range" id="borderThickness" min="1" max="2" value="2" step="1">
-          <span class="description">Adjust the thickness of the border: <br/> 1 - thin, 2 - thick</span>
+          <span class="description">1 细 / 2 粗</span>
         </div>
         
-        <h3>Integrations</h3>
+        <h3>远程推送</h3>
         <div class="div-container">
           <div class="wrapper-integrations">
 
@@ -234,17 +251,17 @@
                          placeholder="Discord Webhook URL"
                          data-group="discord"
                       >
-                  <button class="apply-notification-url-discord" disabled>Apply</button>
+                  <button class="apply-notification-url-discord" disabled>应用</button>
                 </div>
 
                 <div class="instruction-link">
-                  <a id="link-item" href="https://droidcam-motion-detector.web.app/integrations">Instructions on how to integrate correctly</a>
+                  <a id="link-item" href="https://droidcam-motion-detector.web.app/integrations">接入说明</a>
                 </div>
                 
                 <br/>
                 <div class="notification-type-container-discord"> 
                   <div class="notification-type-discord">
-                    <span>SNAPSHOT</span>
+                    <span>截图</span>
                   </div>
 
                   <br/>
@@ -256,8 +273,8 @@
 
                   <br/> -->
 
-                  <label>Send Snapshot Every:</label>
-                  <span id="discord-interval-value">1 sec</span>
+                  <label>截图发送间隔:</label>
+                  <span id="discord-interval-value">1 秒</span>
                   <input type="range" id="integrations" class="integrations-discord" min="1000" max="300000" value="1000" step="1000">
                 </div>
                
@@ -312,17 +329,17 @@
                          placeholder="YOUR CHAT ID"
                          data-group="telegram"
                   >
-                  <button class="apply-notification-url-telegram" disabled>Apply</button>
+                  <button class="apply-notification-url-telegram" disabled>应用</button>
                 </div>
 
                 <div class="instruction-link">
-                  <a id="link-item" href="https://droidcam-motion-detector.web.app/integrations">Instructions on how to integrate correctly</a>
+                  <a id="link-item" href="https://droidcam-motion-detector.web.app/integrations">接入说明</a>
                 </div>
                 
                 <br/>
                 <div class="notification-type-container-telegram"> 
                   <div class="notification-type-telegram">
-                    <span>SNAPSHOT</span>
+                    <span>截图</span>
                   </div>
                   <!-- <br/>
                   <div class="wrapper-integrations-header">
@@ -332,8 +349,8 @@
 
                   <br/>
 
-                  <label>Send Snapshot Every:</label>
-                  <span id="telegram-interval-value">1 sec</span>
+                  <label>截图发送间隔:</label>
+                  <span id="telegram-interval-value">1 秒</span>
                   <input type="range" id="integrations" class="integrations-telegram" min="1000" max="300000" value="1000" step="1000">
                 </div>
                
@@ -369,20 +386,20 @@
           </div>
 
           <span class="description">
-            Enable this feature to receive a snapshot whenever motion is detected. You can choose to receive notifications via Telegram or Discord and customize the interval for receiving these alerts.
+            开启后，检测到运动时可向 Telegram / Discord 发送截图，并可设置发送间隔。
           </span>
             
         </div>
         
         <div class="footer">
           <div>
-            <label>Version:</label>
+            <label>版本:</label>
             <label id="app-version">1.0.0</label>
             
           </div>
           <div>
-            <label>Created by SheeetFace</label>
-            <a id="link-item" href="https://github.com/SheeetFace/DroidCam-Motion-Detector-Desktop">GitHub</a>
+            <label>作者 huangyk</label>
+            <a id="link-item" href="https://github.com/huangyk/DroidCam-Motion-Detector-Desktop">GitHub</a>
           </div>
         </div>
       

@@ -997,3 +997,69 @@ button, select {
   border-top: 1px solid var(--red);
   border-right: 1px solid var(--red);
 }
+
+/* Detection region overlay */
+#detection-region-overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 6;
+  box-sizing: border-box;
+}
+
+#detection-region-overlay.drawing {
+  pointer-events: auto;
+  cursor: crosshair;
+  background: rgba(0, 200, 255, 0.06);
+}
+
+#detection-region-box {
+  position: absolute;
+  display: none;
+  border: 2px solid #00c8ff;
+  background: rgba(0, 200, 255, 0.12);
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.region-toolbar {
+  position: absolute;
+  top: var(--spacing-medium);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  display: flex;
+  gap: 0.4rem;
+  pointer-events: auto;
+}
+
+.region-tool-btn {
+  min-width: 4.5rem;
+  height: 1.7rem;
+  padding: 0 0.55rem;
+  border: 1px solid rgba(169, 185, 185, 0.55);
+  border-radius: 0.25rem;
+  background: rgba(18, 19, 19, 0.88);
+  color: #e8f0f0;
+  font-size: 0.75rem;
+  cursor: pointer;
+  opacity: 0.95;
+}
+
+.region-tool-btn:hover {
+  border-color: #00c8ff;
+  color: #fff;
+}
+
+.region-tool-btn.active {
+  border-color: #00c8ff;
+  color: #00c8ff;
+  box-shadow: 0 0 0 1px rgba(0, 200, 255, 0.35);
+}
+
+#clear-region-settings-btn {
+  margin-top: 0.5rem;
+}

@@ -8,6 +8,14 @@ export interface TrackedObject {
     createdAt: number;
 }
 
+/** Normalized 0–1 rectangle relative to the video frame. */
+export interface DetectionRegion {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface BaseSettings {
   movementThreshold: number;
   distanceThreshold: number;
@@ -19,6 +27,8 @@ export interface BaseSettings {
   sharpness: number;
   borderColor: number[];
   borderThickness:number;
+  /** null = detect full frame */
+  detectionRegion: DetectionRegion | null;
   getVideoSourceUrl: () => string;
   setVideoSourceUrl: (url: string) => void;
 }
@@ -64,4 +74,4 @@ export type PathValue<T, P extends string> =
       : never
     : never;
 
-export type SettingValue = string | number | boolean;
+export type SettingValue = string | number | boolean | DetectionRegion | null;

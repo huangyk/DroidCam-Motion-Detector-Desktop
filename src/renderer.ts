@@ -12,6 +12,7 @@ import { saveSettingsWindowSizeAndPosition} from "./utils/settingsWindowManager"
 
 import { initializeMainButtons } from "./components/navigation/mainButtons";
 import { initializeControlsPanel } from "./components/controlsPanel/controlsPanel";
+import { initializeDetectionRegion } from "./components/detectionRegion/detectionRegion";
 
 import '@zkreations/tooltips/tooltips.min.css';
 
@@ -32,6 +33,7 @@ import './index.css';
     initializeTracking();
     initializeMainButtons();
     initializeControlsPanel();
+    initializeDetectionRegion();
 
     const appVersion = await appVersionCheck();
     

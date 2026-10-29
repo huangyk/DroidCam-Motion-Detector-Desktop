@@ -35,7 +35,7 @@ const config: ForgeConfig = {
     new MakerDeb({
       options: {
         maintainer: 'Alex <sheeetface333@gmail.com>',
-        homepage: 'https://github.com/SheeetFace/DroidCam-Motion-Detector-Desktop',
+        homepage: 'https://github.com/huangyk/DroidCam-Motion-Detector-Desktop',
         icon: path.resolve(__dirname, 'src/assets/icons/droidcam-motion-detector-icon.png'),
         description: 'DroidCam Motion Detector Application',
       },
@@ -43,7 +43,7 @@ const config: ForgeConfig = {
     new MakerRpm({
       options: {
         license: 'MIT',
-        homepage: 'https://github.com/SheeetFace/DroidCam-Motion-Detector-Desktop',
+        homepage: 'https://github.com/huangyk/DroidCam-Motion-Detector-Desktop',
         icon: path.resolve(__dirname, 'src/assets/icons/droidcam-motion-detector-icon.png'),
         description: 'DroidCam Motion Detector Application',
       },

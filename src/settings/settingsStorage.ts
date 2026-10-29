@@ -5,13 +5,29 @@ import type { InitialSettings,Settings, CameraSettingsFunctions} from "../types"
 export function loadSettingsFromLocalStorage(): Partial<Settings> {
     const storedSettings = localStorage.getItem('app-settings');
   
-    if(storedSettings) return mergeSettings(BASE_SETTINGS,JSON.parse(storedSettings)); 
-    else{
-      const baseAndDefaultSettings = mergeSettings(BASE_SETTINGS,DEFAULT_SETTINGS);
-      saveSettingsToLocalStorage(baseAndDefaultSettings);
-  
-      return baseAndDefaultSettings;
+    if(storedSettings) {
+      const parsed = JSON.parse(storedSettings);
+      const merged = {
+        ...DEFAULT_SETTINGS,
+        ...parsed,
+        detectionRegion: parsed.detectionRegion ?? null,
+        integrations: {
+          discord: {
+            ...DEFAULT_SETTINGS.integrations.discord,
+            ...(parsed.integrations?.discord || {}),
+          },
+          telegram: {
+            ...DEFAULT_SETTINGS.integrations.telegram,
+            ...(parsed.integrations?.telegram || {}),
+          },
+        },
+      };
+      return mergeSettings(BASE_SETTINGS, merged);
     }
+
+    const baseAndDefaultSettings = mergeSettings(BASE_SETTINGS,DEFAULT_SETTINGS);
+    saveSettingsToLocalStorage(baseAndDefaultSettings);
+    return baseAndDefaultSettings;
 }
 
 export function saveSettingsToLocalStorage(settings: Settings): void { 

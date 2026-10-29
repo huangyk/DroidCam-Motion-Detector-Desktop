@@ -16,7 +16,7 @@ export const BASE_SETTINGS:CameraSettingsFunctions = {
 export const DEFAULT_SETTINGS: InitialSettings = {
     movementThreshold: 1,
     distanceThreshold: 100,
-    frameSkip: 4,
+    frameSkip: 2,
     alertInterval: 1000,
     alertVolume: 100,
     brightness: 0,
@@ -24,6 +24,7 @@ export const DEFAULT_SETTINGS: InitialSettings = {
     sharpness: 0,
     borderColor: [0, 255, 0, 255],
     borderThickness:2,
+    detectionRegion: null,
     integrations: {
         discord: {
             isEnabled: false,

@@ -60,14 +60,14 @@ export function formatInterval(milliseconds:number):string{
     const seconds = Math.floor(milliseconds / 1000);
     let humanReadable;
   
-    if(seconds < 60) humanReadable = `${seconds} sec${seconds !== 1 ? 's' : ''}`;
+    if(seconds < 60) humanReadable = `${seconds} 秒`;
     else {
 
       const minutes = Math.floor(seconds / 60);
       const remainingSeconds = seconds % 60;
 
-      if(remainingSeconds === 0) humanReadable = `${minutes} min${minutes !== 1 ? 's' : ''}`;
-      else humanReadable = `${minutes} min${minutes !== 1 ? 's' : ''} ${remainingSeconds} sec${remainingSeconds !== 1 ? 's' : ''}`;
+      if(remainingSeconds === 0) humanReadable = `${minutes} 分钟`;
+      else humanReadable = `${minutes} 分 ${remainingSeconds} 秒`;
     }
   
     return humanReadable;

@@ -34,6 +34,8 @@ const createWindow = () => {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       webSecurity: false,
+      // Keep motion detection timers/rAF alive when window is hidden to tray
+      backgroundThrottling: false,
     },
     show: false,
     skipTaskbar: true,
@@ -66,11 +68,11 @@ const createWindow = () => {
   ipcMain.handle('show-dialog', async () => {
     const result = await dialog.showMessageBox(mainWindow, {
       type: 'warning',
-      buttons: ['Restart this app', 'Cancel'],
-      title: 'DroidCam Motion Detector has Lost Connection',
-      message: 'Connection lost. Check your phone, then restart the application.'
+      buttons: ['重启应用', '取消'],
+      title: '连接已断开',
+      message: '摄像头连接丢失。请检查手机端 DroidCam，然后重启本应用。'
     });
-    return result.response === 0; // 0 - "Restart", 1 - "Cancel"
+    return result.response === 0; // 0 - Restart, 1 - Cancel
   });
 
   ipcMain.handle('get-window-size', async () => {
@@ -106,11 +108,11 @@ const createWindow = () => {
 function createTray() {
   tray = new Tray(normalIcon);
   const contextMenu = Menu.buildFromTemplate([
-    { label: 'Open', click: () => mainWindow.show() },
-    { label: 'Exit', click: () => app.quit() },
+    { label: '打开窗口', click: () => mainWindow.show() },
+    { label: '退出', click: () => app.quit() },
   ]);
 
-  tray.setToolTip('DroidCam Motion Detector');
+  tray.setToolTip('工位后方监测');
   tray.setContextMenu(contextMenu);
 
   tray.on('click', () => {

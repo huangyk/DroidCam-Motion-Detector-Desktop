@@ -37,7 +37,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/SheeetFace/DroidCam-Motion-Detector-Desktop"
+    "url": "https://github.com/huangyk/DroidCam-Motion-Detector-Desktop"
   },
   "license": "MIT",
   "dependencies": {

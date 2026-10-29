@@ -43,6 +43,39 @@ let blurredFrame: cv.Mat;
 let threshFrame: cv.Mat;
 let contours: cv.MatVector;
 
+let processTimer: ReturnType<typeof setTimeout> | null = null;
+let processRaf: number | null = null;
+const HIDDEN_FRAME_INTERVAL_MS = 100; // ~10fps while window is hidden
+
+function clearProcessSchedule() {
+    if (processTimer !== null) {
+        clearTimeout(processTimer);
+        processTimer = null;
+    }
+    if (processRaf !== null) {
+        cancelAnimationFrame(processRaf);
+        processRaf = null;
+    }
+}
+
+/** rAF pauses when the window is hidden; use setTimeout so tray/background still detects motion. */
+function scheduleNextFrame() {
+    clearProcessSchedule();
+    if (!videoPlaying || !streaming) return;
+
+    if (document.hidden) {
+        processTimer = setTimeout(() => {
+            processTimer = null;
+            processImage();
+        }, HIDDEN_FRAME_INTERVAL_MS);
+    } else {
+        processRaf = requestAnimationFrame(() => {
+            processRaf = null;
+            processImage();
+        });
+    }
+}
+
 
 const initializeOpenCV = (): Promise<boolean> => {
   return new Promise((resolve) => {
@@ -101,7 +134,7 @@ function processImage() {
     try {
         if (frameCount < settings.frameSkip) {
             frameCount++;
-            requestAnimationFrame(processImage);
+            scheduleNextFrame();
             return;
         }
         
@@ -126,12 +159,14 @@ function processImage() {
         if (prevFrame.empty()) {
             blurredFrame.copyTo(prevFrame);
             tempFrame.delete();
-            requestAnimationFrame(processImage);
+            scheduleNextFrame();
             return;
         }
 
         cv.absdiff(prevFrame, blurredFrame, diffFrame);
-        cv.threshold(diffFrame, threshFrame, 15, 255, cv.THRESH_BINARY);
+        // Lower threshold = more sensitive to small pixel changes
+        cv.threshold(diffFrame, threshFrame, 10, 255, cv.THRESH_BINARY);
+        maskOutsideDetectionRegion(threshFrame);
         cv.findContours(threshFrame, contours, new cv.Mat(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
         const newObjects = [];
@@ -142,7 +177,7 @@ function processImage() {
             if (area > settings.movementThreshold) {
                 const rect = cv.boundingRect(cnt);
 
-                if (rect.y >= EXCLUDE_HEIGHT) {
+                if (rect.y >= EXCLUDE_HEIGHT && isRectInDetectionRegion(rect)) {
                     const width = Math.max(BASE_BOX_SIZE, rect.width);
                     const height = Math.max(BASE_BOX_SIZE, rect.height);
                     const x = rect.width < BASE_BOX_SIZE ? rect.x - (BASE_BOX_SIZE - rect.width) / 2 : rect.x;
@@ -318,6 +353,8 @@ function processImage() {
             }
         });
 
+        drawDetectionRegionOverlay(frame);
+
         handleMotionEvents(trackedObjects.length, settings.alertVolume, settings.alertInterval);
 
         blurredFrame.copyTo(prevFrame);
@@ -329,7 +366,60 @@ function processImage() {
         clearMatrix();
     }
 
-    requestAnimationFrame(processImage);
+    scheduleNextFrame();
+}
+
+function getDetectionRegionPixels() {
+    const region = settings.detectionRegion;
+    if (!region || currentWidth <= 0 || currentHeight <= 0) return null;
+
+    const x = Math.round(region.x * currentWidth);
+    const y = Math.round(region.y * currentHeight);
+    const width = Math.round(region.width * currentWidth);
+    const height = Math.round(region.height * currentHeight);
+
+    const safeX = Math.max(0, Math.min(x, currentWidth - 1));
+    const safeY = Math.max(0, Math.min(y, currentHeight - 1));
+    const safeW = Math.max(1, Math.min(width, currentWidth - safeX));
+    const safeH = Math.max(1, Math.min(height, currentHeight - safeY));
+
+    return { x: safeX, y: safeY, width: safeW, height: safeH };
+}
+
+function maskOutsideDetectionRegion(mat: cv.Mat) {
+    const roi = getDetectionRegionPixels();
+    if (!roi) return;
+
+    const masked = cv.Mat.zeros(mat.rows, mat.cols, mat.type());
+    const srcRoi = mat.roi(new cv.Rect(roi.x, roi.y, roi.width, roi.height));
+    const dstRoi = masked.roi(new cv.Rect(roi.x, roi.y, roi.width, roi.height));
+    srcRoi.copyTo(dstRoi);
+    srcRoi.delete();
+    dstRoi.delete();
+    masked.copyTo(mat);
+    masked.delete();
+}
+
+function isRectInDetectionRegion(rect: Rect): boolean {
+    const roi = getDetectionRegionPixels();
+    if (!roi) return true;
+
+    const cx = rect.x + rect.width / 2;
+    const cy = rect.y + rect.height / 2;
+    return cx >= roi.x && cx <= roi.x + roi.width && cy >= roi.y && cy <= roi.y + roi.height;
+}
+
+function drawDetectionRegionOverlay(mat: cv.Mat) {
+    const roi = getDetectionRegionPixels();
+    if (!roi) return;
+
+    cv.rectangle(
+        mat,
+        new cv.Point(roi.x, roi.y),
+        new cv.Point(roi.x + roi.width, roi.y + roi.height),
+        new cv.Scalar(0, 200, 255, 255),
+        2
+    );
 }
 
 function isInsideBox(inner:TrackedObject, outer:TrackedObject, threshold = 0.8) {
@@ -414,7 +504,7 @@ export function startMotionTracking():Promise<void> {
             img.style.display = "none";
             UIShowCanvasOutput();
         }
-        requestAnimationFrame(processImage);
+        scheduleNextFrame();
         domElements.toggleCheckbox.checked = true;
         resolve();
     });
@@ -425,6 +515,7 @@ export function stopMotionTracking():Promise<void> {
         return new Promise((resolve) => {
             streaming = false;
             videoPlaying = false;
+            clearProcessSchedule();
 
             img.style.display = "block";
 

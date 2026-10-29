@@ -22,7 +22,7 @@ export const UIDisableMotionButton = () => {
     domElements.switchMotion.style.opacity = '.3';
 };
 export const UISetConnectingText = (text: string) => {
-    domElements.connecting.textContent = 'Connecting to ' + text;
+    domElements.connecting.textContent = '正在连接 ' + text;
 };
 export const UIShowConnectionLost = () => {
     domElements.connectingLost.style.display = "block";
